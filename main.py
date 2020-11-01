@@ -68,6 +68,10 @@ from functionMap import *
 #   e. use spotipy for tempo and energy for each song
 # ========================================
 
+# 3 track names for each artist
+# 500 artists/decade so 1500 songs/decade
+# split decades: 1970s, 1980s, 1990s, 2000s, 2010s
+
 
 
 print()
@@ -101,7 +105,7 @@ while True:
         print(api_call)
 
         request = requests.get(api_call)
-        data = request.json()
+        atad = request.json()
         data = data['message']['body']
         print()
         print(data['lyrics']['lyrics_body'])
