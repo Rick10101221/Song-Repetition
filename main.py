@@ -10,7 +10,8 @@ import json
 
 # Local file imports
 from config import *
-from functionMap import *
+from musixFunctionMap import *
+from spotipyFunctionMap import *
 
 # ============== music_genre_id codes ==============  
 # 1 - None
@@ -74,46 +75,94 @@ from functionMap import *
 
 
 
-print()
-print('Welcome to TEMP')
-print()
-print('Menu Options:')
-print('0 - exit')
-print('1 - retrieve json data')
-print('2 - retrieve song lyrics')
-print()
+def main():
+  #musixMatchPrototype()
+  spotipyObjectSetup()
+  # rapPlaylistIds = getTrackIDs(spot_user_id, spot_playlist_id)
+  # print(len(rapPlaylistIds))
+  playlist = getPlaylistTracks(spot_user_id, spot_playlist_id)
+  songs = trackParse(playlist)
+  # print(playlist, end='\n\n\n\n')
+  # print(len(playlist), end='\n\n')
+  # print(json.dumps(playlist[0], indent = 4), end='\n\n\n')
+  print(songs)
+  
 
-while True:
-    choice = input('> ')
+def getTrackIDs(user, playlist_id):
+  ids = []
+  playlist = sp.user_playlist(user, playlist_id)
+  for item in playlist['tracks']['items']:
+    track = item['track']
+    ids.append(track['id'])
+  return ids
 
-    if choice == '0':
-        break
-    if choice == '1':
-        pass
-    if choice == '2':
-        print('Artist Name')
-        artist_name = input('> ')
-        print('Song Title')
-        track_name = input('> ')
-        print()
 
-        #api call
-        api_call = base_url + lyrics_matcher + format_url + \
-            artist_search_parameter + artist_name + \
-            track_search_parameter + track_name + \
-            api_key
-        print(api_call)
+def getPlaylistTracks(user, playlist_id):
+  results = sp.user_playlist_tracks(user, playlist_id)
+  tracks = results['items']
+  while results['next']:
+    results = sp.next(results)
+    tracks.extend(results['items'])
+  return tracks
 
-        request = requests.get(api_call)
-        atad = request.json()
-        data = data['message']['body']
-        print()
-        print(data['lyrics']['lyrics_body'])
 
-    print()
-    print('Again? (y/n)')
-    again = input('> ')
-    if (again == 'n'):
-        break
-    print()
-    print('Input again (0/1/2)')
+def trackParse(tracksJSON):
+  songs = []
+  for track in tracksJSON:
+    songs.append(track['track']['name'])
+  return songs
+
+
+def spotipyObjectSetup():
+  client_credentials_manager = SpotifyClientCredentials(spot_client_id, spot_client_secret)
+  global sp
+  sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+
+def musixMatchPrototype():
+  print()
+  print('Welcome to TEMP')
+  print()
+  print('Menu Options:')
+  print('0 - exit')
+  print('1 - retrieve json data')
+  print('2 - retrieve song lyrics')
+  print()
+
+  while True:
+      choice = input('> ')
+
+      if choice == '0':
+          break
+      if choice == '1':
+          pass
+      if choice == '2':
+          print('Artist Name')
+          artist_name = input('> ')
+          print('Song Title')
+          track_name = input('> ')
+          print()
+
+          #api call
+          api_call = base_url + lyrics_matcher + format_url + \
+              artist_search_parameter + artist_name + \
+              track_search_parameter + track_name + \
+              api_key
+          print(api_call)
+
+          request = requests.get(api_call)
+          atad = request.json()
+          data = data['message']['body']
+          print()
+          print(data['lyrics']['lyrics_body'])
+
+      print()
+      print('Again? (y/n)')
+      again = input('> ')
+      if (again == 'n'):
+          break
+      print()
+      print('Input again (0/1/2)')
+
+
+main()
