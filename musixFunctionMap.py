@@ -43,6 +43,9 @@ p16 = artists_id_filter_parameter = "&f_artist_id="
 p17 = country_parameter = "&country="
 p18 = release_date_parameter = "&s_release_date="
 p19 = album_name_parameter = "&g_album_name="
+p20 = release_date_min = "&f_track_release_group_first_release_date_min="
+p21 = release_date_max = "&f_track_release_group_first_release_date_max="
+
 paramaters = [p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19]
 
 # arrays with paramaters for each method

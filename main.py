@@ -1,7 +1,3 @@
-# Library imports for spotipy (Spotify Web API)
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-
 # Library imports for dataframe, api calls, and json formatting
 import pandas as pd
 import time
@@ -10,49 +6,8 @@ import json
 
 # Local file imports
 from config import *
-from musixFunctionMap import *
-from spotipyFunctionMap import *
-
-# ============== music_genre_id codes ==============  
-# 1 - None
-# 2 - Blues
-# 3 - Comedy
-# 4 - Children's Music
-# 5 - Classical
-# 6 - Country
-# 7 - Electronic
-# 8 - Holiday
-# 9 - Opera
-# 10 - Singer/Songwriter
-# 11 - Jazz
-# 12 - Latin
-# 13 - New age
-# 14 - Pop
-# 15 - R&B Soul
-# 16 - Soundtrack
-# 17 - Dance
-# 18 - Hip Hop/Rap
-# 19 - World
-# 20 - Alternative
-# 21 - Rock
-# 22 - Christian & Gospel
-# 23 - Vocal
-# 24 - Reggae
-# 25 - Easy Listening
-# 26 - None
-# 27 - J-Pop
-# 28 - Enka
-# 29 - Anime
-# 30 - Kayokyoku
-# (31-33) - None
-# 34 - Music
-# (35-49) - None
-# 50 - Fitness and Workout
-# 51 - K-pop
-# 52 - Karaoke
-# 53 - Instrumental
-# ==================================================  
-# For our purposes, we only need 18
+from spotipyFunctions import *
+from musixFunctions import *
 
 
 # ================= TODO =================
@@ -76,93 +31,53 @@ from spotipyFunctionMap import *
 
 
 def main():
-  #musixMatchPrototype()
-  spotipyObjectSetup()
-  # rapPlaylistIds = getTrackIDs(spot_user_id, spot_playlist_id)
-  # print(len(rapPlaylistIds))
-  playlist = getPlaylistTracks(spot_user_id, spot_playlist_id)
-  songs = trackParse(playlist)
-  # print(playlist, end='\n\n\n\n')
-  # print(len(playlist), end='\n\n')
-  # print(json.dumps(playlist[0], indent = 4), end='\n\n\n')
-  print(songs)
-  
-
-def getTrackIDs(user, playlist_id):
-  ids = []
-  playlist = sp.user_playlist(user, playlist_id)
-  for item in playlist['tracks']['items']:
-    track = item['track']
-    ids.append(track['id'])
-  return ids
+  loadDB()
 
 
-def getPlaylistTracks(user, playlist_id):
-  results = sp.user_playlist_tracks(user, playlist_id)
-  tracks = results['items']
-  while results['next']:
-    results = sp.next(results)
-    tracks.extend(results['items'])
+def loadDB():
+  tracks = loadIDs()
+  lyrics = loadLyrics(tracks)
+ 
+
+def loadIDs():
+  tracks = musix_getTrackIDsAndNames()
+  with open('id_db.txt', 'w') as file:
+    file.writelines(f'{track[0]} {track[1]}\n' for track in tracks)
   return tracks
 
+def loadLyrics(tracks):
+  lyrics = musix_getLyrics(tracks)
 
-def trackParse(tracksJSON):
-  songs = []
-  for track in tracksJSON:
-    songs.append(track['track']['name'])
-  return songs
+  print('before', '\n\n', lyrics, end='\n\n\n')
+  for i in range(len(lyrics)):
+    # Specific string processing
+    lyrics[i] = lyrics[i].replace('Verse 1:', '')
+    lyrics[i] = lyrics[i].replace ('******* This Lyrics is NOT for Commercial use *******', '')
+    lyrics[i] = lyrics[i].replace('  1409620759542', '')
+    # General character processing
+    lyrics[i] = lyrics[i].replace('\n', ' ').replace('...', ' ')
+    lyrics[i] = lyrics[i].replace(',', '').replace('*', '').replace('@', '')
+    lyrics[i] = lyrics[i].replace('#', '').replace('.', '').replace('!', '')
+    lyrics[i] = lyrics[i].replace('?', '').replace(':', '').replace('(', '')
+    lyrics[i] = lyrics[i].replace('+', '').replace('=', '').replace('%', '')
+    lyrics[i] = lyrics[i].replace('^', '').replace('&', ' ').replace('~', '')
+    lyrics[i] = lyrics[i].replace('\"', '').replace(' - ', ' ')
+    lyrics[i] = lyrics[i].replace(')', '').replace('\'', '').replace('-', ' ')
+    lyrics[i] = lyrics[i].replace('   ', ' ').replace('  ', ' ')
+    lyrics[i] = lyrics[i].lower()
+  print('after', '\n\n', lyrics, end='\n\n\n')
 
+  with open('lyrics_db.txt', 'w') as file:
+    file.writelines(f'{lyric}\n' for lyric in lyrics)
+  return lyrics
 
-def spotipyObjectSetup():
-  client_credentials_manager = SpotifyClientCredentials(spot_client_id, spot_client_secret)
-  global sp
-  sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
-
-
-def musixMatchPrototype():
-  print()
-  print('Welcome to TEMP')
-  print()
-  print('Menu Options:')
-  print('0 - exit')
-  print('1 - retrieve json data')
-  print('2 - retrieve song lyrics')
-  print()
-
-  while True:
-      choice = input('> ')
-
-      if choice == '0':
-          break
-      if choice == '1':
-          pass
-      if choice == '2':
-          print('Artist Name')
-          artist_name = input('> ')
-          print('Song Title')
-          track_name = input('> ')
-          print()
-
-          #api call
-          api_call = base_url + lyrics_matcher + format_url + \
-              artist_search_parameter + artist_name + \
-              track_search_parameter + track_name + \
-              api_key
-          print(api_call)
-
-          request = requests.get(api_call)
-          atad = request.json()
-          data = data['message']['body']
-          print()
-          print(data['lyrics']['lyrics_body'])
-
-      print()
-      print('Again? (y/n)')
-      again = input('> ')
-      if (again == 'n'):
-          break
-      print()
-      print('Input again (0/1/2)')
-
+def spotipy_main():
+  # Spotipy
+  sp = spotipy_objectSetup()
+  # rapPlaylistIds = getTrackIDs(spot_user_id, spot_playlist_id)
+  playlist = spotipy_getPlaylistTracks(spot_user_id, spot_playlist_id)
+  songs = spotipy_trackParse(playlist)
+  # print(json.dumps(playlist[0], indent = 4), end='\n\n\n')
+  # print(songs)
 
 main()
