@@ -46,22 +46,17 @@ from musixFunctionMap import *
 # For our purposes, we only need 18
 
 
-def musix_getLyrics(tracks):
-  lyricDB = []
-  api_calls = 20
-  for i in range(api_calls):
-    trackTuple = tracks[i]
-    api_call = base_url + a1 + format_url + p3 + str(trackTuple[0]) + api_key
-    print(api_call)
-    request = requests.get(api_call)
-    data = request.json()
-    lyrics = data['message']['body']['lyrics']['lyrics_body']
-    lyricDB.append(lyrics)
-  return lyricDB
+def musix_getLyrics(track_id):
+  api_call = base_url + a1 + format_url + p3 + str(track_id) + api_key
+  print(api_call)
+  request = requests.get(api_call)
+  data = request.json()
+  lyrics = data['message']['body']['lyrics']['lyrics_body']
+  return lyrics
 
 
 # Only 1331 rap songs available in 1980s
-def musix_getTrackIDsAndNames():
+def musix_getTrackIDsAndNames(numSongs):
   tracks = []
   genre_id = '18'
   language = 'en'
@@ -69,17 +64,19 @@ def musix_getTrackIDsAndNames():
   end_year = '19891231'
   has_lyrics = '1'
   page_size = '100'
-  max_pages = 1
+  max_pages = (numSongs // 100) + 1
   for page in range(max_pages):
     api_call = base_url + a5 + format_url + p11 + genre_id + p12 + language + \
                 p6 + has_lyrics + p20 + start_year + p21 + end_year + p9 + \
                 page_size + p8 + str(page) + api_key
-    print(api_call)
     request = requests.get(api_call)
     data = request.json()
     track_list = data['message']['body']['track_list']
     for track in track_list:
-      tracks.append((track['track']['track_id'], track['track']['track_name']))
+      tracks.append((track['track']['track_id'], \
+        track['track']['artist_name'], \
+        track['track']['track_name'], \
+        '1980s'))
   return tracks
 
 
